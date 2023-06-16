@@ -154,7 +154,7 @@ xyz_files = os.listdir("./xyz_fragments")
 for index, xyz_filename in enumerate(xyz_files):
     xyz_filepath = f"./xyz_fragments/{xyz_filename}"
     print(xyz_filename.replace(".xyz", ""))
-    mesh_str, initial_positions = convert_xyz_to_mesh(xyz_filepath, show_initial=False, show_min_max_coord=False, number_of_nodes_in_each_line=200)
+    mesh_str, initial_positions = convert_xyz_to_mesh(xyz_filepath, show_initial=False, show_min_max_coord=False, number_of_nodes_in_each_line=1000)
     print(mesh_str)
     ijks_from_mesh, xyzs_from_mesh = convert_mesh_to_xyz(mesh_str)
     result_table_headers = ["i", "j", "k", "actual X", "actual Y", "actual Z", "converted X", "converted Y", "converted Z", "% error**2"]
