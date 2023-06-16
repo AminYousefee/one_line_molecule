@@ -41,6 +41,7 @@ def convert_xyz_to_mesh(filepath, show_initial, show_min_max_coord, number_of_no
     # print(f"new cube length:{new_cube_length}")
     new_positions2 = new_positions1 * cube_length_scaling_factor
     # print(f"final position of atoms after the scaling: \n{new_positions}")
+    new_positions2 = np.round(new_positions2)
     rounded_positions_to_match_with_mesh_grids = new_positions2.astype(int)
     # print(tabulate(rounded_positions_to_match_with_mesh_grids, headers=['i', 'j', 'k']))
     # print(f"final position of atoms after rounding: \n{rounded_positions_to_match_with_mesh_grids}")
@@ -90,7 +91,6 @@ def convert_cml_to_xyz(cml_file, xyz_file):
         f.write(str(len(coordinates)) + '\n')
         f.write('Converted from CML to XYZ\n')
 
-        # Write atomic coordinates with element symbols
         for i in range(len(coordinates)):
             line = f"{elements[i]} {coordinates[i][0]} {coordinates[i][1]} {coordinates[i][2]}\n"
             f.write(line)
@@ -111,7 +111,6 @@ def convert_mesh_str_to_sym_and_num(mesh_part: str):
             if before_is_number:
                 temp.append(c)
             else:
-                #     the previous one was symbol
                 symbols.append("".join(temp))
                 temp.clear()
                 temp.append(c)
@@ -147,20 +146,28 @@ def convert_mesh_to_xyz(mesh_str: str):
     distance_between_two_nodes = float(cube_length) / (int(mesh_number_in_line) - 1)
     xyzs = [(ijk[0] * distance_between_two_nodes, ijk[1] * distance_between_two_nodes, ijk[2] * distance_between_two_nodes) for ijk in ijks]
     return ijks, xyzs
-    # return symbols, numbers, cube_length, mesh_number_in_line
 
 
 xyz_files = os.listdir("./xyz_fragments")
 for index, xyz_filename in enumerate(xyz_files):
     xyz_filepath = f"./xyz_fragments/{xyz_filename}"
     print(xyz_filename.replace(".xyz", ""))
-    mesh_str, initial_positions = convert_xyz_to_mesh(xyz_filepath, show_initial=False, show_min_max_coord=False, number_of_nodes_in_each_line=1000)
+    mesh_str, initial_positions = convert_xyz_to_mesh(xyz_filepath, show_initial=False, show_min_max_coord=False, number_of_nodes_in_each_line=200)
     print(mesh_str)
     ijks_from_mesh, xyzs_from_mesh = convert_mesh_to_xyz(mesh_str)
     result_table_headers = ["i", "j", "k", "actual X", "actual Y", "actual Z", "converted X", "converted Y", "converted Z", "% error**2"]
-    # print(ijks_from_mesh)
-    # print(initial_positions)
-    # print(xyzs_from_mesh)
-    result_table = [(ijk_from_mesh[0], ijk_from_mesh[1], ijk_from_mesh[2], act_xyz[0], act_xyz[1], act_xyz[2], xyz[0], xyz[1], xyz[2], (np.sqrt(((xyz[0] - act_xyz[0])**2 + (xyz[1] - act_xyz[1])**2 + (xyz[2] - act_xyz[2])**2)/(act_xyz[0]**2 + act_xyz[1]**2 + act_xyz[2]**2)) * 100)) for ijk_from_mesh, act_xyz, xyz in zip(ijks_from_mesh, initial_positions, xyzs_from_mesh)]
+    result_table = []
+    for ijk_from_mesh, act_xyz, xyz in zip(ijks_from_mesh, initial_positions, xyzs_from_mesh):
+        i = ijk_from_mesh[0]
+        j = ijk_from_mesh[1]
+        k = ijk_from_mesh[2]
+        act_x = act_xyz[0]
+        act_y = act_xyz[1]
+        act_z = act_xyz[2]
+        converted_x = xyz[0]
+        converted_y = xyz[1]
+        converted_z = xyz[2]
+        error2_percent = np.sqrt(((xyz[0] - act_xyz[0])**2 + (xyz[1] - act_xyz[1])**2 + (xyz[2] - act_xyz[2])**2)/(act_xyz[0]**2 + act_xyz[1]**2 + act_xyz[2]**2)) * 100
+        result_table.append([i, j, k, act_x, act_y, act_z, converted_x, converted_y, converted_z, error2_percent])
     print(tabulate(result_table, headers=result_table_headers))
     print(100*"-")
